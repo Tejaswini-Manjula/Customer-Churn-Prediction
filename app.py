@@ -1,21 +1,30 @@
-import os
+import streamlit as st
 
-# Telecom Customer Churn Prediction System
+# Page Configuration
+st.set_page_config(
+    page_title="Customer Churn Prediction",
+    page_icon="📊",
+    layout="wide"
+)
 
-# Model path
-model_path = "models/churn_model.pkl"
+# Main Title
+st.title("📊 Customer Churn Prediction System")
 
-# Verify serialized model availability
-if os.path.exists(model_path):
-    print("Serialized churn model detected successfully.")
-else:
-    print("Model file missing.")
+st.markdown("""
+Welcome to the **Customer Churn Prediction System**.
 
-# Prediction workflow
-def prediction_pipeline():
-    print("Customer Input")
-    print("→ Feature Processing")
-    print("→ Model Prediction")
-    print("→ Churn Output")
+This application predicts whether a telecom customer is likely to **Churn** or **Stay** using Machine Learning.
 
-prediction_pipeline()
+---
+
+### Application Modules
+
+- 🏠 Home
+- 📊 Dataset Overview
+- 🤖 Customer Churn Prediction
+- 📈 Model Performance
+
+Use the **sidebar** to navigate between the pages.
+""")
+
+st.info("Select a page from the sidebar to get started.")
