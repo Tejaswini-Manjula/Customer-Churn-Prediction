@@ -1,8 +1,8 @@
 import pandas as pd
+import joblib
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-
 
 # ==========================
 # LOAD DATASET
@@ -10,12 +10,11 @@ from sklearn.preprocessing import StandardScaler
 df = pd.read_csv(
     "data/WA_Fn-UseC_-Telco-Customer-Churn.csv"
 )
-df = df.astype(int, errors='ignore')
 
+df = df.astype(int, errors='ignore')
 
 print("\n===== BEFORE CLEANING =====")
 print(df.info())
-
 
 # ==========================
 # CLEANING
@@ -41,10 +40,8 @@ df.drop(
     inplace=True
 )
 
-
 print("\n===== AFTER CLEANING =====")
 print(df.info())
-
 
 # ==========================
 # ENCODING
@@ -70,7 +67,6 @@ binary_mapping = {
 for column in binary_columns:
     df[column] = df[column].map(binary_mapping)
 
-
 # One-hot encoding
 multi_category_columns = [
     "MultipleLines",
@@ -91,7 +87,6 @@ df = pd.get_dummies(
     drop_first=True
 )
 
-
 print("\n===== AFTER ENCODING =====")
 print(df.head())
 
@@ -99,7 +94,7 @@ print("\nDataset Shape After Encoding:")
 print(df.shape)
 
 # Convert boolean columns to integers
-bool_columns = df.select_dtypes(include='bool').columns
+bool_columns = df.select_dtypes(include="bool").columns
 df[bool_columns] = df[bool_columns].astype(int)
 
 print("\n===== DATA TYPES AFTER ENCODING =====")
@@ -111,6 +106,9 @@ print(df.dtypes)
 X = df.drop("Churn", axis=1)
 y = df["Churn"]
 
+# Save feature names
+joblib.dump(list(X.columns), "models/feature_names.pkl")
+print("\n✅ Feature names saved successfully.")
 
 # ==========================
 # TRAIN TEST SPLIT
@@ -122,13 +120,11 @@ X_train, X_test, y_train, y_test = train_test_split(
     random_state=42
 )
 
-
 print("\n===== TRAIN TEST SHAPES =====")
 print("X_train:", X_train.shape)
 print("X_test :", X_test.shape)
 print("y_train:", y_train.shape)
 print("y_test :", y_test.shape)
-
 
 # ==========================
 # FEATURE SCALING
@@ -138,11 +134,13 @@ scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
+# Save scaler
+joblib.dump(scaler, "models/scaler.pkl")
+print("\n✅ Scaler saved successfully.")
 
 print("\n===== SCALING COMPLETE =====")
 print("X_train_scaled shape:", X_train_scaled.shape)
 print("X_test_scaled shape :", X_test_scaled.shape)
-
 
 # ==========================
 # SAVE FILES
@@ -167,4 +165,4 @@ y_test.to_csv(
     index=False
 )
 
-print("\nProcessed files saved successfully.")
+print("\n✅ Processed files saved successfully.")

@@ -1,61 +1,103 @@
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, classification_report
 import joblib
 
-# Load datasets
-X_train = pd.read_csv("data/X_train_scaled.csv")
-X_test = pd.read_csv("data/X_test_scaled.csv")
-y_train = pd.read_csv("data/y_train.csv")
-y_test = pd.read_csv("data/y_test.csv")
-
-# Convert target column to 1D
-y_train = y_train.values.ravel()
-y_test = y_test.values.ravel()
-
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
 
+# ==========================
+# Load Dataset
+# ==========================
 
-# Load processed data
-X_train = pd.read_csv("data/X_train_scaled.csv")
-X_test = pd.read_csv("data/X_test_scaled.csv")
+df = pd.read_csv("data/cleaned_telco_churn.csv")
 
-y_train = pd.read_csv("data/y_train.csv")
-y_test = pd.read_csv("data/y_test.csv")
+# Target Encoding
+df["Churn"] = df["Churn"].map({"No":0,"Yes":1})
 
+X = df.drop("Churn", axis=1)
+y = df["Churn"]
 
+# Split
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
 
-# Create model
-model = LogisticRegression()
+# --------------------------
+# Feature Types
+# --------------------------
 
-# Train model
-model.fit(X_train, y_train)
+categorical_features = X.select_dtypes(include=["object"]).columns.tolist()
 
-# Train model
-model.fit(X_train, y_train.values.ravel())
+numerical_features = X.select_dtypes(exclude=["object"]).columns.tolist()
 
+# --------------------------
+# Preprocessing
+# --------------------------
 
-# Predictions
-y_pred = model.predict(X_test)
+preprocessor = ColumnTransformer(
+    transformers=[
+        (
+            "num",
+            StandardScaler(),
+            numerical_features
+        ),
+        (
+            "cat",
+            OneHotEncoder(handle_unknown="ignore"),
+            categorical_features
+        )
+    ]
+)
 
-# Accuracy
-accuracy = accuracy_score(y_test, y_pred)
+# --------------------------
+# Pipeline
+# --------------------------
 
-print("✅ Model trained successfully")
-print(f"Accuracy: {accuracy:.4f}")
+pipeline = Pipeline([
+    ("preprocessor", preprocessor),
+    ("classifier", LogisticRegression(max_iter=1000))
+])
 
-print("\nClassification Report:")
-print(classification_report(y_test, y_pred))
+# --------------------------
+# Train
+# --------------------------
 
-# Save model
-joblib.dump(model, "models/churn_model.pkl")
+pipeline.fit(X_train, y_train)
 
-print("\n💾 Model saved as models/churn_model.pkl")
+# --------------------------
+# Predict
+# --------------------------
 
-
-# Accuracy
-accuracy = accuracy_score(y_test, y_pred)
+pred = pipeline.predict(X_test)
 
 print("\n===== MODEL TRAINED =====")
-print("Accuracy:", accuracy)
+
+print(
+    f"Accuracy: {accuracy_score(y_test,pred):.4f}"
+)
+
+print()
+
+print(
+    classification_report(
+        y_test,
+        pred
+    )
+)
+
+# --------------------------
+# Save Pipeline
+# --------------------------
+
+joblib.dump(
+    pipeline,
+    "models/churn_pipeline.pkl"
+)
+
+print("\nPipeline saved successfully.")
